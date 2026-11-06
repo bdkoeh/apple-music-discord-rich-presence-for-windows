@@ -11,7 +11,7 @@ $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 # ---------------- config ----------------
-$cfg = [pscustomobject]@{ clientId = ''; pollSeconds = 2; showWhenPaused = $false; smallImage = ''; showButton = $true }
+$cfg = [pscustomobject]@{ clientId = ''; pollSeconds = 2; showWhenPaused = $false; smallImage = ''; showButton = $true; statusDisplay = 'song-artist' }
 if (Test-Path $ConfigPath) {
     $user = Get-Content $ConfigPath -Raw | ConvertFrom-Json
     foreach ($p in $user.PSObject.Properties) { $cfg | Add-Member -Force NoteProperty $p.Name $p.Value }
@@ -123,7 +123,17 @@ function Fit([string]$s) {   # Discord needs 2..128 chars
 
 function Build-Activity($np) {
     $info = Get-TrackInfo $np
-    $a = @{ type = 2; details = (Fit $np.Title); state = (Fit $np.Artist) }   # type 2 = "Listening to"
+    # type 2 = "Listening to". status_display_type picks which field Discord shows next to your name
+    # in the member list / DMs: 0 = app name, 1 = state, 2 = details.
+    switch ($cfg.statusDisplay) {
+        'app'    { $a = @{ type = 2; status_display_type = 0; details = (Fit $np.Title); state = (Fit $np.Artist) } }
+        'song'   { $a = @{ type = 2; status_display_type = 2; details = (Fit $np.Title); state = (Fit $np.Artist) } }
+        'artist' { $a = @{ type = 2; status_display_type = 1; details = (Fit $np.Title); state = (Fit $np.Artist) } }
+        default  {   # 'song-artist': "Song - Artist" next to your name, album on the second line of the card
+            $second = if ($np.Album) { $np.Album } else { $np.Artist }
+            $a = @{ type = 2; status_display_type = 2; details = (Fit "$($np.Title) - $($np.Artist)"); state = (Fit $second) }
+        }
+    }
     $assets = @{}
     if ($info -and $info.Art) { $assets.large_image = $info.Art }
     if ($np.Album) { $assets.large_text = Fit $np.Album }
@@ -132,7 +142,7 @@ function Build-Activity($np) {
     if ($np.Status -eq 'Playing' -and $np.Duration -gt 0) {
         $start = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - [long]($np.Position * 1000)
         $a.timestamps = @{ start = $start; end = $start + [long]($np.Duration * 1000) }
-    } elseif ($np.Status -ne 'Playing') { $a.state = Fit "$($np.Artist) (paused)" }
+    } elseif ($np.Status -ne 'Playing') { $a.state = Fit "$($a.state) (paused)" }
     if ($cfg.showButton -and $info -and $info.Url) { $a.buttons = @(@{ label = 'Listen on Apple Music'; url = $info.Url }) }
     $a
 }

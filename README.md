@@ -3,7 +3,7 @@
 Show what you're playing in the **Apple Music app for Windows** on your Discord profile, the same way Discord's
 built-in Spotify integration does:
 
-- **Listening to Apple Music** status
+- **Listening to *Song - Artist*** next to your name (or **Listening to Apple Music**, your choice)
 - song title, artist and album
 - album artwork
 - a live progress bar (elapsed and remaining time)
@@ -151,6 +151,7 @@ All settings live in `config.json`. Only `clientId` is required.
 | Key | Default | Description |
 |---|---|---|
 | `clientId` | — | Your Discord Application ID. **Required.** Can also be set with the `DISCORD_CLIENT_ID` environment variable. |
+| `statusDisplay` | `"song-artist"` | What appears next to your name in the member list and DMs. `"song-artist"` shows **Listening to Song - Artist**, `"song"` shows the song title, `"artist"` shows the artist, and `"app"` shows **Listening to Apple Music** (your Discord application's name). The full card on your profile shows everything in every mode. |
 | `pollSeconds` | `2` | How often to check what Apple Music is playing. |
 | `showWhenPaused` | `false` | `false` clears your status when paused, like Spotify. `true` keeps it with "(paused)" and no progress bar. |
 | `showButton` | `true` | Show the **Listen on Apple Music** button. |
