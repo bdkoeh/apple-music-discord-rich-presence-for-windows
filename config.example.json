@@ -1,0 +1,7 @@
+{
+  "clientId": "PASTE_YOUR_DISCORD_APPLICATION_ID_HERE",
+  "pollSeconds": 2,
+  "showWhenPaused": false,
+  "showButton": true,
+  "smallImage": ""
+}
